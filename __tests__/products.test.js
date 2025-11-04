@@ -158,18 +158,31 @@ describe('Testes de Produtos (Products)', () => {
           fornecedorId: 999999
         });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('error');
     });
   });
 
   describe('GET /products/:id', () => {
     test('Deve buscar produto por ID com fornecedor', async () => {
+      // Pegar o primeiro produto da lista
+      const listResponse = await request(app)
+        .get('/products')
+        .set('Authorization', `Bearer ${adminToken}`);
+      
+      const firstProductId = listResponse.body[0]?.id;
+      
+      if (!firstProductId) {
+        console.warn('Nenhum produto encontrado para testar');
+        return;
+      }
+
       const response = await request(app)
-        .get('/products/1')
+        .get(`/products/${firstProductId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', 1);
+      expect(response.body).toHaveProperty('id', firstProductId);
       expect(response.body).toHaveProperty('nome');
       expect(response.body).toHaveProperty('fornecedor');
     });

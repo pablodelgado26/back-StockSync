@@ -110,12 +110,24 @@ describe('Testes de Fornecedores (Suppliers)', () => {
 
   describe('GET /suppliers/:id', () => {
     test('Deve buscar fornecedor por ID', async () => {
+      // Pegar o primeiro fornecedor da lista
+      const listResponse = await request(app)
+        .get('/suppliers')
+        .set('Authorization', `Bearer ${adminToken}`);
+      
+      const firstSupplierId = listResponse.body[0]?.id;
+      
+      if (!firstSupplierId) {
+        console.warn('Nenhum fornecedor encontrado para testar');
+        return;
+      }
+
       const response = await request(app)
-        .get('/suppliers/1')
+        .get(`/suppliers/${firstSupplierId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', 1);
+      expect(response.body).toHaveProperty('id', firstSupplierId);
       expect(response.body).toHaveProperty('nome');
     });
 

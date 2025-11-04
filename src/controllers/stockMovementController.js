@@ -25,7 +25,7 @@ class StockMovementController {
     async show(req, res) {
         try {
             const { id } = req.params;
-            const movement = await StockMovementModel.findById(id);
+            const movement = await StockMovementModel.findById(Number(id));
 
             if (!movement) {
                 return res.status(404).json({ error: "Movimentação não encontrada" });
@@ -65,14 +65,14 @@ class StockMovementController {
             }
 
             // Verificar se o produto existe
-            const productExists = await ProductModel.findById(produtoId);
+            const productExists = await ProductModel.findById(Number(produtoId));
             if (!productExists) {
                 return res.status(404).json({ error: "Produto não encontrado" });
             }
 
             // Se for saída, verificar se há estoque suficiente
             if (tipo === 'saida') {
-                const estoqueAtual = await ProductModel.getStockQuantity(produtoId);
+                const estoqueAtual = await ProductModel.getStockQuantity(Number(produtoId));
                 if (estoqueAtual < quantidade) {
                     return res.status(400).json({ 
                         error: `Estoque insuficiente. Estoque atual: ${estoqueAtual}` 
@@ -90,11 +90,10 @@ class StockMovementController {
             const movement = await StockMovementModel.create(movementData);
 
             // Obter estoque atualizado
-            const estoqueAtual = await ProductModel.getStockQuantity(produtoId);
+            const estoqueAtual = await ProductModel.getStockQuantity(Number(produtoId));
 
             return res.status(201).json({
-                message: "Movimentação registrada com sucesso!",
-                movement,
+                ...movement,
                 estoqueAtual
             });
         } catch (error) {
@@ -109,12 +108,12 @@ class StockMovementController {
             const { id } = req.params;
 
             // Verificar se a movimentação existe
-            const movementExists = await StockMovementModel.findById(id);
+            const movementExists = await StockMovementModel.findById(Number(id));
             if (!movementExists) {
                 return res.status(404).json({ error: "Movimentação não encontrada" });
             }
 
-            await StockMovementModel.delete(id);
+            await StockMovementModel.delete(Number(id));
 
             return res.json({ message: "Movimentação excluída com sucesso!" });
         } catch (error) {

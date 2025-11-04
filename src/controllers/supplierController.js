@@ -16,7 +16,7 @@ class SupplierController {
     async show(req, res) {
         try {
             const { id } = req.params;
-            const supplier = await SupplierModel.findById(id);
+            const supplier = await SupplierModel.findById(Number(id));
 
             if (!supplier) {
                 return res.status(404).json({ error: "Fornecedor não encontrado" });
@@ -51,10 +51,7 @@ class SupplierController {
             const data = { nome, contato, cnpj };
             const supplier = await SupplierModel.create(data);
 
-            return res.status(201).json({
-                message: "Fornecedor criado com sucesso!",
-                supplier,
-            });
+            return res.status(201).json(supplier);
         } catch (error) {
             console.error("Erro ao criar fornecedor:", error);
             res.status(500).json({ error: "Erro ao criar fornecedor" });
@@ -68,7 +65,7 @@ class SupplierController {
             const { nome, contato, cnpj } = req.body;
 
             // Verificar se o fornecedor existe
-            const supplierExists = await SupplierModel.findById(id);
+            const supplierExists = await SupplierModel.findById(Number(id));
             if (!supplierExists) {
                 return res.status(404).json({ error: "Fornecedor não encontrado" });
             }
@@ -87,12 +84,9 @@ class SupplierController {
             if (contato) data.contato = contato;
             if (cnpj) data.cnpj = cnpj;
 
-            const supplier = await SupplierModel.update(id, data);
+            const supplier = await SupplierModel.update(Number(id), data);
 
-            return res.json({
-                message: "Fornecedor atualizado com sucesso!",
-                supplier,
-            });
+            return res.json(supplier);
         } catch (error) {
             console.error("Erro ao atualizar fornecedor:", error);
             res.status(500).json({ error: "Erro ao atualizar fornecedor" });
@@ -105,12 +99,12 @@ class SupplierController {
             const { id } = req.params;
 
             // Verificar se o fornecedor existe
-            const supplierExists = await SupplierModel.findById(id);
+            const supplierExists = await SupplierModel.findById(Number(id));
             if (!supplierExists) {
                 return res.status(404).json({ error: "Fornecedor não encontrado" });
             }
 
-            await SupplierModel.delete(id);
+            await SupplierModel.delete(Number(id));
 
             return res.json({ message: "Fornecedor excluído com sucesso!" });
         } catch (error) {
