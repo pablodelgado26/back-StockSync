@@ -71,7 +71,9 @@ describe('Testes de Autenticação', () => {
         });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toContain('Role inválido');
+      expect(response.body.error).toBe('Erro de validação');
+      expect(response.body.detalhes).toBeDefined();
+      expect(response.body.detalhes.some(d => d.campo === 'role')).toBe(true);
     });
   });
 

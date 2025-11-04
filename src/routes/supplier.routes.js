@@ -1,6 +1,9 @@
 import express from "express";
 import SupplierController from "../controllers/supplierController.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
+import { supplierValidation } from "../validators/index.js";
+import validate from "../middleware/validationMiddleware.js";
+import { createLimiter } from "../middleware/rateLimitMiddleware.js";
 
 const router = express.Router();
 
@@ -8,9 +11,24 @@ const router = express.Router();
 router.get("/", SupplierController.index);          // GET /suppliers - Listar todos
 router.get("/:id", SupplierController.show);        // GET /suppliers/:id - Obter por ID
 
-// Rotas restritas a admin
-router.post("/", adminMiddleware, SupplierController.store);         // POST /suppliers - Criar (admin)
-router.put("/:id", adminMiddleware, SupplierController.update);      // PUT /suppliers/:id - Atualizar (admin)
-router.delete("/:id", adminMiddleware, SupplierController.destroy);  // DELETE /suppliers/:id - Excluir (admin)
+// Rotas restritas a admin (com validação)
+router.post(
+    "/", 
+    adminMiddleware,
+    createLimiter,
+    supplierValidation.create,
+    validate,
+    SupplierController.store
+);
+
+router.put(
+    "/:id", 
+    adminMiddleware,
+    supplierValidation.update,
+    validate,
+    SupplierController.update
+);
+
+router.delete("/:id", adminMiddleware, SupplierController.destroy);
 
 export default router;

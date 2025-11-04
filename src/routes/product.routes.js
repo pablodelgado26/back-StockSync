@@ -1,6 +1,9 @@
 import express from "express";
 import ProductController from "../controllers/productController.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
+import { productValidation } from "../validators/index.js";
+import validate from "../middleware/validationMiddleware.js";
+import { createLimiter } from "../middleware/rateLimitMiddleware.js";
 
 const router = express.Router();
 
@@ -8,9 +11,24 @@ const router = express.Router();
 router.get("/", ProductController.index);          // GET /products - Listar todos
 router.get("/:id", ProductController.show);        // GET /products/:id - Obter por ID
 
-// Rotas restritas a admin
-router.post("/", adminMiddleware, ProductController.store);         // POST /products - Criar (admin)
-router.put("/:id", adminMiddleware, ProductController.update);      // PUT /products/:id - Atualizar (admin)
-router.delete("/:id", adminMiddleware, ProductController.destroy);  // DELETE /products/:id - Excluir (admin)
+// Rotas restritas a admin (com validação)
+router.post(
+    "/", 
+    adminMiddleware,
+    createLimiter,
+    productValidation.create,
+    validate,
+    ProductController.store
+);
+
+router.put(
+    "/:id", 
+    adminMiddleware,
+    productValidation.update,
+    validate,
+    ProductController.update
+);
+
+router.delete("/:id", adminMiddleware, ProductController.destroy);
 
 export default router;
