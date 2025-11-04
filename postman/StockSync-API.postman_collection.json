@@ -1,0 +1,592 @@
+{
+  "info": {
+    "_postman_id": "stocksync-api-2025",
+    "name": "StockSync API",
+    "description": "Documentação completa da API do sistema StockSync - Gerenciamento de Estoque\n\n## 🚀 Como Usar\n\n1. Execute o seed para popular o banco: `node prisma/seed/seedStock.js`\n2. Inicie o servidor: `npm run dev`\n3. Faça login com uma das credenciais abaixo\n4. Use o token JWT retornado nas requisições protegidas\n\n## 🔐 Credenciais de Teste\n\n**Admin:**\n- Email: admin@stocksync.com\n- Senha: 123456\n\n**Estoquista:**\n- Email: maria.estoquista@stocksync.com\n- Senha: 123456",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Novo Usuário\",\n  \"email\": \"novo@stocksync.com\",\n  \"password\": \"123456\",\n  \"role\": \"estoquista\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registra um novo usuário no sistema.\n\n**Campos obrigatórios:**\n- name: Nome completo\n- email: Email único\n- password: Senha (mínimo 6 caracteres)\n\n**Campo opcional:**\n- role: \"admin\" ou \"estoquista\" (padrão: estoquista)"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('authToken', response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@stocksync.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Autentica um usuário e retorna um token JWT.\n\n**Resposta:**\n- token: JWT para usar em requisições protegidas\n- user: Dados do usuário (sem senha)\n\n**O token é salvo automaticamente na variável de ambiente `authToken`**"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "users"]
+            },
+            "description": "Lista todos os usuários cadastrados no sistema.\n\n**Requer autenticação.**"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de autenticação e gerenciamento de usuários"
+    },
+    {
+      "name": "Fornecedores",
+      "item": [
+        {
+          "name": "List Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/suppliers",
+              "host": ["{{baseUrl}}"],
+              "path": ["suppliers"]
+            },
+            "description": "Lista todos os fornecedores cadastrados.\n\n**Permissões:** Admin e Estoquista"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Supplier by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/suppliers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["suppliers", "1"]
+            },
+            "description": "Busca um fornecedor específico por ID.\n\n**Permissões:** Admin e Estoquista"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Supplier (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Tech Distribuidor LTDA\",\n  \"contato\": \"(11) 98765-4321\",\n  \"cnpj\": \"12345678/0001-90\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/suppliers",
+              "host": ["{{baseUrl}}"],
+              "path": ["suppliers"]
+            },
+            "description": "Cria um novo fornecedor.\n\n**Permissões:** Apenas Admin\n\n**Campos obrigatórios:**\n- nome: Nome do fornecedor\n- contato: Telefone de contato\n- cnpj: CNPJ único"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Supplier (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Tech Distribuidor Atualizado LTDA\",\n  \"contato\": \"(11) 91234-5678\",\n  \"cnpj\": \"12345678/0001-90\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/suppliers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["suppliers", "1"]
+            },
+            "description": "Atualiza os dados de um fornecedor.\n\n**Permissões:** Apenas Admin"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Supplier (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/suppliers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["suppliers", "1"]
+            },
+            "description": "Exclui um fornecedor do sistema.\n\n**Permissões:** Apenas Admin\n\n**⚠️ Atenção:** Remove também todos os produtos associados (CASCADE)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Gerenciamento de fornecedores"
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            },
+            "description": "Lista todos os produtos com estoque calculado e dados do fornecedor.\n\n**Permissões:** Admin e Estoquista"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "1"]
+            },
+            "description": "Busca um produto específico com estoque calculado.\n\n**Permissões:** Admin e Estoquista"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"MOUSE-PRO-001\",\n  \"nome\": \"Mouse Gamer Pro\",\n  \"estoqueMinimo\": 10,\n  \"fornecedorId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            },
+            "description": "Cria um novo produto.\n\n**Permissões:** Apenas Admin\n\n**Campos obrigatórios:**\n- sku: Código único do produto\n- nome: Nome do produto\n- estoqueMinimo: Quantidade mínima em estoque\n- fornecedorId: ID do fornecedor"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Mouse Gamer Pro RGB\",\n  \"estoqueMinimo\": 15\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "1"]
+            },
+            "description": "Atualiza os dados de um produto.\n\n**Permissões:** Apenas Admin\n\n**Nota:** SKU e fornecedorId também podem ser alterados"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "1"]
+            },
+            "description": "Exclui um produto do sistema.\n\n**Permissões:** Apenas Admin\n\n**⚠️ Atenção:** Remove também todas as movimentações associadas (CASCADE)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Gerenciamento de produtos"
+    },
+    {
+      "name": "Movimentações",
+      "item": [
+        {
+          "name": "List Stock Movements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements"]
+            },
+            "description": "Lista todas as movimentações de estoque.\n\n**Permissões:** Admin e Estoquista\n\n**Retorna:** Movimentações ordenadas por data (mais recentes primeiro)"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Type (Entrada)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements?tipo=entrada",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements"],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "entrada",
+                  "description": "Filtrar apenas entradas"
+                }
+              ]
+            },
+            "description": "Filtra movimentações por tipo \"entrada\"."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Type (Saída)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements?tipo=saida",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements"],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "saida",
+                  "description": "Filtrar apenas saídas"
+                }
+              ]
+            },
+            "description": "Filtra movimentações por tipo \"saida\"."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements?dataInicio=2025-01-01&dataFim=2025-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements"],
+              "query": [
+                {
+                  "key": "dataInicio",
+                  "value": "2025-01-01",
+                  "description": "Data inicial (YYYY-MM-DD)"
+                },
+                {
+                  "key": "dataFim",
+                  "value": "2025-12-31",
+                  "description": "Data final (YYYY-MM-DD)"
+                }
+              ]
+            },
+            "description": "Filtra movimentações por intervalo de datas.\n\n**Parâmetros:**\n- dataInicio: Data inicial (opcional)\n- dataFim: Data final (opcional)"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by Product",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements?produtoId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements"],
+              "query": [
+                {
+                  "key": "produtoId",
+                  "value": "1",
+                  "description": "ID do produto"
+                }
+              ]
+            },
+            "description": "Filtra movimentações de um produto específico."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Movement by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements", "1"]
+            },
+            "description": "Busca uma movimentação específica com dados do produto."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Entry (Entrada)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"entrada\",\n  \"quantidade\": 50,\n  \"produtoId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements"]
+            },
+            "description": "Registra uma entrada de mercadoria.\n\n**Permissões:** Admin e Estoquista\n\n**Campos obrigatórios:**\n- tipo: \"entrada\"\n- quantidade: Número positivo\n- produtoId: ID do produto"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Exit (Saída)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"saida\",\n  \"quantidade\": 10,\n  \"produtoId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements"]
+            },
+            "description": "Registra uma saída de mercadoria.\n\n**Permissões:** Admin e Estoquista\n\n**Campos obrigatórios:**\n- tipo: \"saida\"\n- quantidade: Número positivo\n- produtoId: ID do produto"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Movement (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/stockmovements/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["stockmovements", "1"]
+            },
+            "description": "Exclui uma movimentação.\n\n**Permissões:** Apenas Admin\n\n**⚠️ Atenção:** Afeta o cálculo do estoque do produto"
+          },
+          "response": []
+        }
+      ],
+      "description": "Gerenciamento de movimentações de estoque (entradas e saídas)"
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard"]
+            },
+            "description": "Retorna resumo do sistema e alertas de estoque.\n\n**Permissões:** Admin e Estoquista\n\n**Retorna:**\n- resumo: Estatísticas gerais (produtos, fornecedores, movimentações)\n- alertas: Produtos com estoque abaixo do mínimo"
+          },
+          "response": []
+        }
+      ],
+      "description": "Dashboard com estatísticas e alertas"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

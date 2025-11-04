@@ -12,8 +12,11 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
     "prisma:seed": "node prisma/seed/seed.js"
   },
   "prisma": {
@@ -31,6 +34,10 @@
     "vsce": "^2.15.0"
   },
   "devDependencies": {
-    "prisma": "^6.18.0"
+    "@types/jest": "^30.0.0",
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
+    "prisma": "^6.18.0",
+    "supertest": "^7.1.4"
   }
 }

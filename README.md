@@ -61,6 +61,52 @@ node prisma/seed/seedStock.js
 npm run dev
 ```
 
+## 🧪 Testes
+
+O projeto inclui testes automatizados completos com Jest e Supertest.
+
+```bash
+# Executar todos os testes
+npm test
+
+# Executar testes em modo watch
+npm run test:watch
+
+# Gerar relatório de cobertura
+npm run test:coverage
+```
+
+### Suítes de Testes Implementadas
+
+✅ **Autenticação** (`auth.test.js`)
+- Registro de usuários
+- Login com validação de credenciais
+- Validação de tokens JWT
+- Controle de permissões
+
+✅ **Fornecedores** (`suppliers.test.js`)
+- CRUD completo
+- Permissões (Admin vs Estoquista)
+- Validação de dados
+
+✅ **Produtos** (`products.test.js`)
+- CRUD completo
+- Validação de SKU único
+- Relacionamento com fornecedores
+- Permissões por role
+
+✅ **Movimentações** (`stockmovements.test.js`)
+- Registro de entradas/saídas
+- Filtros por tipo, data e produto
+- Validações de quantidade
+- Cálculo de estoque
+
+✅ **Dashboard** (`dashboard.test.js`)
+- Estatísticas do sistema
+- Alertas de estoque mínimo
+- Validação de cálculos
+
+
 ## 🔐 Credenciais de Teste
 
 | Tipo | Email | Senha |
@@ -69,6 +115,17 @@ npm run dev
 | Estoquista | maria.estoquista@stocksync.com | 123456 |
 
 ## 📚 Endpoints da API
+
+### 📖 Documentação Postman
+
+Importe a collection completa no Postman: **`postman/StockSync-API.postman_collection.json`**
+
+A collection inclui:
+- ✅ Todos os endpoints documentados
+- ✅ Exemplos de requisição e resposta
+- ✅ Variáveis de ambiente (baseUrl, authToken)
+- ✅ Scripts automáticos para salvar token após login
+- ✅ Descrições detalhadas de cada endpoint
 
 ### Autenticação
 - `POST /auth/register` - Registrar usuário
@@ -155,6 +212,14 @@ curl -X GET http://localhost:4000/dashboard \
 
 ```
 back-StockSync/
+├── __tests__/                 # Testes automatizados
+│   ├── auth.test.js           # Testes de autenticação
+│   ├── suppliers.test.js      # Testes de fornecedores
+│   ├── products.test.js       # Testes de produtos
+│   ├── stockmovements.test.js # Testes de movimentações
+│   └── dashboard.test.js      # Testes de dashboard
+├── postman/                   # Documentação da API
+│   └── StockSync-API.postman_collection.json
 ├── prisma/
 │   ├── schema.prisma          # Schema do banco
 │   ├── migrations/            # Histórico de migrations
@@ -184,6 +249,7 @@ back-StockSync/
 │   │   └── dashboard.routes.js
 │   └── server.js              # Servidor Express
 ├── .env                       # Variáveis de ambiente
+├── jest.config.js             # Configuração do Jest
 ├── package.json
 └── README.md
 ```
@@ -192,7 +258,13 @@ back-StockSync/
 
 ```bash
 # Desenvolvimento
-npm run dev
+npm run dev                   # Inicia servidor com nodemon
+npm start                     # Inicia servidor em produção
+
+# Testes
+npm test                      # Executa todos os testes
+npm run test:watch            # Modo watch para desenvolvimento
+npm run test:coverage         # Gera relatório de cobertura
 
 # Prisma
 npx prisma migrate dev        # Criar/aplicar migrations
