@@ -25,6 +25,7 @@ const authMiddleware = (req, res, next) => {
         }
 
         req.userId = decoded.id
+        req.user = decoded // Adicionar todo o objeto decodificado para acessar o role
         return next();
     })
 

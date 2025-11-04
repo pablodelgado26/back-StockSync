@@ -1,14 +1,14 @@
 {
-  "name": "api-boilerplate",
+  "name": "api-stocksync",
   "version": "1.0.0",
-  "description": "Projeto base de uma API com MVC",
+  "description": "Projeto Back-End StockSync",
   "keywords": [
     "nodejs",
     "javascript",
     "prisma"
   ],
   "license": "MIT",
-  "author": "Pablo Delgado",
+  "author": "Alexandra Aversani, Gabriela Moleta e Pablo Delgado",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "seed": "node prisma/seed/seed.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.18.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -28,7 +28,9 @@
     "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.1.9",
     "package": "^1.0.1",
-    "prisma": "^6.5.0",
     "vsce": "^2.15.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.18.0"
   }
 }

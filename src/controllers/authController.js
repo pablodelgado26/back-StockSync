@@ -18,11 +18,21 @@ class AuthController {
     //Registrar um novo usuário
     async register(req, res) {
         try {
-            const { name, email, password } = req.body;
+            const { name, email, password, role } = req.body;
 
             // Validação básica
             if (!name || !email || !password) {
                 return res.status(400).json({ error: "Os campos nome, email ou senha são obrigatórios" });
+            }
+
+            // Validar role
+            const validRoles = ['admin', 'estoquista'];
+            const userRole = role || 'estoquista'; // Default: estoquista
+            
+            if (!validRoles.includes(userRole)) {
+                return res.status(400).json({ 
+                    error: "Role inválido. Use 'admin' ou 'estoquista'" 
+                });
             }
 
             //Verificar se o usuário ja existe 
@@ -40,6 +50,7 @@ class AuthController {
                 name,
                 email,
                 password: hashedPassword,
+                role: userRole,
             };
 
             //Criar usuário 
@@ -47,7 +58,12 @@ class AuthController {
 
             return res.status(201).json({
                 message: "Usuário criado com sucesso!",
-                user,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                },
             });
         } catch (error) {
             console.error("Erro ao criar novo usuario: ", error)
@@ -82,6 +98,7 @@ class AuthController {
                     id: userExists.id,
                     name: userExists.name,
                     email: userExists.email,
+                    role: userExists.role,
                 },
                 process.env.JWT_SECRET,
                 {
@@ -92,7 +109,12 @@ class AuthController {
             return res.json({
                 message: "Login realizado com sucesso!",
                 token,
-                userExists,
+                user: {
+                    id: userExists.id,
+                    name: userExists.name,
+                    email: userExists.email,
+                    role: userExists.role
+                },
             });
         } catch (error) {
             console.error("Erro ao fazer login: ", error)
