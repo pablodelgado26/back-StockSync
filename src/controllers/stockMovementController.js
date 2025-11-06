@@ -70,9 +70,9 @@ class StockMovementController {
                 return res.status(404).json({ error: "Produto não encontrado" });
             }
 
-            // Se for saída, verificar se há estoque suficiente
+                        // Se for saída, verificar se há estoque suficiente
             if (tipo === 'saida') {
-                const estoqueAtual = await ProductModel.getStockQuantity(Number(produtoId));
+                const estoqueAtual = productExists.stock;
                 if (estoqueAtual < quantidade) {
                     return res.status(400).json({ 
                         error: `Estoque insuficiente. Estoque atual: ${estoqueAtual}` 
@@ -89,8 +89,11 @@ class StockMovementController {
             };
             const movement = await StockMovementModel.create(movementData);
 
+            // Atualizar o estoque do produto
+            await ProductModel.updateStock(produtoId, Number(quantidade), tipo);
+
             // Obter estoque atualizado
-            const estoqueAtual = await ProductModel.getStockQuantity(Number(produtoId));
+            const estoqueAtual = await ProductModel.getStockQuantity(produtoId);
 
             return res.status(201).json({
                 ...movement,

@@ -137,11 +137,17 @@ async function main() {
                 const marca = getRandomElement(marcas);
                 const modelo = `${marca} ${tipo}`;
                 const variacao = j > 0 ? ` v${j + 1}` : '';
+                const barcode = `${getRandomInt(1000000000000, 9999999999999)}`; // EAN-13
+                const preco = parseFloat((getRandomInt(50, 5000) + Math.random()).toFixed(2));
                 
                 const produto = await prisma.product.create({
                     data: {
-                        sku: gerarSKU(categoria, produtoIndex),
-                        nome: `${modelo}${variacao}`,
+                        barcode: barcode,
+                        name: `${modelo}${variacao}`,
+                        description: `${tipo} da marca ${marca} - Alta qualidade e desempenho`,
+                        price: preco,
+                        stock: 0, // Inicializado em 0, será atualizado pelas movimentações
+                        category: categoria,
                         estoqueMinimo: getRandomInt(5, 30),
                         fornecedorId: getRandomElement(fornecedores).id
                     }
@@ -162,24 +168,32 @@ async function main() {
     // Para cada produto, criar várias movimentações
     for (const produto of produtos) {
         const numMovimentacoes = getRandomInt(3, 8);
+        let estoqueAtual = 0;
         
         // Primeira movimentação sempre é uma entrada inicial
+        const quantidadeInicial = getRandomInt(30, 100);
         await prisma.stockMovement.create({
             data: {
                 tipo: 'entrada',
-                quantidade: getRandomInt(30, 100),
+                quantidade: quantidadeInicial,
                 produtoId: produto.id,
                 data: gerarDataAleatoria(90) // Últimos 90 dias
             }
         });
+        estoqueAtual += quantidadeInicial;
         totalMovimentacoes++;
 
         // Criar movimentações aleatórias
         for (let i = 1; i < numMovimentacoes; i++) {
             const tipo = Math.random() > 0.4 ? 'saida' : 'entrada';
-            const quantidade = tipo === 'entrada' 
+            let quantidade = tipo === 'entrada' 
                 ? getRandomInt(20, 80) 
-                : getRandomInt(5, 40);
+                : getRandomInt(5, Math.min(40, estoqueAtual));
+
+            // Garantir que não fique com estoque negativo
+            if (tipo === 'saida' && quantidade > estoqueAtual) {
+                quantidade = Math.max(1, estoqueAtual);
+            }
 
             await prisma.stockMovement.create({
                 data: {
@@ -189,8 +203,21 @@ async function main() {
                     data: gerarDataAleatoria(60)
                 }
             });
+
+            // Atualizar estoque local
+            if (tipo === 'entrada') {
+                estoqueAtual += quantidade;
+            } else {
+                estoqueAtual -= quantidade;
+            }
             totalMovimentacoes++;
         }
+
+        // Atualizar o campo stock do produto no banco
+        await prisma.product.update({
+            where: { id: produto.id },
+            data: { stock: estoqueAtual }
+        });
     }
     console.log(`✅ ${totalMovimentacoes} movimentações criadas!\n`);
 

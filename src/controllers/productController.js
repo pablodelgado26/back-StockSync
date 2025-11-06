@@ -7,16 +7,11 @@ class ProductController {
         try {
             const products = await ProductModel.findAll();
             
-            // Adicionar estoque atual para cada produto
-            const productsWithStock = await Promise.all(
-                products.map(async (product) => {
-                    const estoqueAtual = await ProductModel.getStockQuantity(product.id);
-                    return {
-                        ...product,
-                        estoqueAtual
-                    };
-                })
-            );
+            // Produtos já têm o campo stock direto do banco
+            const productsWithStock = products.map(product => ({
+                ...product,
+                estoqueAtual: product.stock
+            }));
 
             res.json(productsWithStock);
         } catch (error) {
@@ -25,22 +20,20 @@ class ProductController {
         }
     }
 
-    // Obter um produto pelo ID
+        // Obter um produto pelo ID
     async show(req, res) {
         try {
             const { id } = req.params;
-            const product = await ProductModel.findById(Number(id));
+            const product = await ProductModel.findById(id);
 
             if (!product) {
                 return res.status(404).json({ error: "Produto não encontrado" });
             }
 
-            // Adicionar estoque atual
-            const estoqueAtual = await ProductModel.getStockQuantity(Number(id));
-            
+            // Produto já tem o campo stock direto
             res.json({
                 ...product,
-                estoqueAtual
+                estoqueAtual: product.stock
             });
         } catch (error) {
             console.error("Erro ao buscar produto:", error);
@@ -88,29 +81,29 @@ class ProductController {
         }
     }
 
-    // Atualizar um produto (somente admin)
+        // Atualizar um produto (somente admin)
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { sku, nome, estoqueMinimo, fornecedorId } = req.body;
+            const { barcode, name, description, price, stock, category, estoqueMinimo, fornecedorId } = req.body;
 
             // Verificar se o produto existe
-            const productExists = await ProductModel.findById(Number(id));
+            const productExists = await ProductModel.findById(id);
             if (!productExists) {
                 return res.status(404).json({ error: "Produto não encontrado" });
             }
 
-            // Se o SKU foi alterado, verificar se já não existe
-            if (sku && sku !== productExists.sku) {
-                const skuExists = await ProductModel.findBySku(sku);
-                if (skuExists) {
-                    return res.status(400).json({ error: "Este SKU já está cadastrado!" });
+            // Se o barcode foi alterado, verificar se já não existe
+            if (barcode && barcode !== productExists.barcode) {
+                const barcodeExists = await ProductModel.findByBarcode(barcode);
+                if (barcodeExists) {
+                    return res.status(400).json({ error: "Este código de barras já está cadastrado!" });
                 }
             }
 
             // Se o fornecedor foi alterado, verificar se existe
             if (fornecedorId) {
-                const supplierExists = await SupplierModel.findById(Number(fornecedorId));
+                const supplierExists = await SupplierModel.findById(fornecedorId);
                 if (!supplierExists) {
                     return res.status(404).json({ error: "Fornecedor não encontrado" });
                 }
@@ -118,14 +111,21 @@ class ProductController {
 
             // Atualizar o produto
             const data = {};
-            if (sku) data.sku = sku;
-            if (nome) data.nome = nome;
+            if (barcode) data.barcode = barcode;
+            if (name) data.name = name;
+            if (description !== undefined) data.description = description;
+            if (price !== undefined) data.price = Number(price);
+            if (stock !== undefined) data.stock = Number(stock);
+            if (category) data.category = category;
             if (estoqueMinimo !== undefined) data.estoqueMinimo = Number(estoqueMinimo);
             if (fornecedorId) data.fornecedorId = Number(fornecedorId);
 
-            const product = await ProductModel.update(Number(id), data);
+            const product = await ProductModel.update(id, data);
 
-            return res.json(product);
+            return res.json({
+                message: "Produto atualizado com sucesso!",
+                product,
+            });
         } catch (error) {
             console.error("Erro ao atualizar produto:", error);
             res.status(500).json({ error: "Erro ao atualizar produto" });

@@ -28,11 +28,11 @@ class ProductModel {
         return product;
     }
 
-    // Obter um produto pelo SKU
-    async findBySku(sku) {
+    // Obter um produto pelo barcode
+    async findByBarcode(barcode) {
         const product = await prisma.product.findUnique({
             where: {
-                sku,
+                barcode,
             },
             include: {
                 fornecedor: true,
@@ -81,24 +81,33 @@ class ProductModel {
         return true;
     }
 
-    // Calcular estoque atual de um produto
+    // Calcular estoque atual de um produto (mantido para compatibilidade com movimentações)
     async getStockQuantity(productId) {
-        const movements = await prisma.stockMovement.findMany({
-            where: {
-                produtoId: Number(productId)
-            }
+        // Retorna o estoque direto do produto
+        const product = await prisma.product.findUnique({
+            where: { id: Number(productId) },
+            select: { stock: true }
+        });
+        
+        return product ? product.stock : 0;
+    }
+
+    // Atualizar estoque após movimentação
+    async updateStock(productId, quantidade, tipo) {
+        const product = await prisma.product.findUnique({
+            where: { id: Number(productId) }
         });
 
-        let total = 0;
-        movements.forEach(movement => {
-            if (movement.tipo === 'entrada') {
-                total += movement.quantidade;
-            } else if (movement.tipo === 'saida') {
-                total -= movement.quantidade;
-            }
-        });
+        if (!product) return null;
 
-        return total;
+        const novoEstoque = tipo === 'entrada' 
+            ? product.stock + quantidade 
+            : product.stock - quantidade;
+
+        return await prisma.product.update({
+            where: { id: Number(productId) },
+            data: { stock: novoEstoque }
+        });
     }
 
     // Obter produtos com estoque baixo
@@ -107,11 +116,10 @@ class ProductModel {
         const lowStockProducts = [];
 
         for (const product of products) {
-            const currentStock = await this.getStockQuantity(product.id);
-            if (currentStock < product.estoqueMinimo) {
+            if (product.stock < product.estoqueMinimo) {
                 lowStockProducts.push({
                     ...product,
-                    estoqueAtual: currentStock
+                    estoqueAtual: product.stock
                 });
             }
         }

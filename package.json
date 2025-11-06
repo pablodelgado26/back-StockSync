@@ -17,10 +17,10 @@
     "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "prisma:seed": "node prisma/seed/seed.js"
+    "prisma:seed": "node prisma/seed/seedStock.js"
   },
   "prisma": {
-    "seed": "node prisma/seed/seed.js"
+    "seed": "node prisma/seed/seedStock.js"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
