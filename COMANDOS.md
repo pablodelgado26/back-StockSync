@@ -92,6 +92,10 @@ curl -X POST http://localhost:4000/auth/login \
 # Listar produtos (com token)
 curl -X GET http://localhost:4000/products \
   -H "Authorization: Bearer SEU_TOKEN_AQUI"
+
+# Buscar produto por barcode
+curl -X GET http://localhost:4000/products/barcode/1234567890123 \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI"
 ```
 
 ---

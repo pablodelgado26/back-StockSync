@@ -63,15 +63,19 @@ Sistema completo de gerenciamento de estoque com controle de produtos, fornecedo
 │ role        │
 └─────────────┘
 
-┌─────────────┐           ┌─────────────┐
-│  Supplier   │           │   Product   │
-├─────────────┤           ├─────────────┤
-│ id (PK)     │───────────│ id (PK)     │
-│ nome        │   1:N     │ sku         │
-│ contato     │           │ nome        │
-│ cnpj        │           │estoqueMinimo│
-└─────────────┘           │fornecedorId │
-                          └─────────────┘
+┌─────────────┐           ┌──────────────┐
+│  Supplier   │           │   Product    │
+├─────────────┤           ├──────────────┤
+│ id (PK)     │───────────│ id (PK)      │
+│ nome        │   1:N     │ barcode      │ 🔍 Código escaneado
+│ contato     │           │ name         │
+│ cnpj        │           │ description  │
+└─────────────┘           │ price        │
+                          │ stock        │ 📦 Estoque atual
+                          │ category     │
+                          │estoqueMinimo │
+                          │fornecedorId  │
+                          └──────────────┘
                                  │
                                  │ 1:N
                                  │
@@ -379,6 +383,7 @@ A collection inclui:
 ### Produtos (Admin para POST/PUT/DELETE)
 - `GET /products` - Listar todos
 - `GET /products/:id` - Obter por ID
+- `GET /products/barcode/:barcode` - Buscar por código de barras
 - `POST /products` - Criar
 - `PUT /products/:id` - Atualizar
 - `DELETE /products/:id` - Excluir
@@ -409,7 +414,7 @@ O projeto conta com melhorias profissionais de segurança, validação e perform
 ### ✅ **Validações**
 - ✅ **Express Validator** com regras completas:
   - Fornecedores: CNPJ (formato XX.XXX.XXX/XXXX-XX), telefone
-  - Produtos: SKU único, estoque mínimo >= 0
+  - Produtos: Barcode único, nome, preço, categoria, estoque mínimo >= 0
   - Movimentações: Tipo (entrada/saida), quantidade > 0
   - Autenticação: Email válido, senha >= 6 caracteres, role (admin/estoquista)
 
@@ -475,13 +480,32 @@ curl -X POST http://localhost:4000/auth/login \
 curl -X GET http://localhost:4000/products \
   -H "Authorization: Bearer SEU_TOKEN"
 
-# 3. Registrar entrada
+# 3. Buscar produto por código de barras
+curl -X GET http://localhost:4000/products/barcode/1234567890123 \
+  -H "Authorization: Bearer SEU_TOKEN"
+
+# 4. Criar produto
+curl -X POST http://localhost:4000/products \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "barcode": "1234567890123",
+    "name": "Mouse Gamer RGB",
+    "description": "Mouse com iluminação RGB e 7 botões programáveis",
+    "price": 159.90,
+    "stock": 0,
+    "category": "Periféricos",
+    "estoqueMinimo": 10,
+    "fornecedorId": 1
+  }'
+
+# 5. Registrar entrada de estoque
 curl -X POST http://localhost:4000/stockmovements \
   -H "Authorization: Bearer SEU_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"tipo":"entrada","quantidade":10,"produtoId":1}'
+  -d '{"tipo":"entrada","quantidade":50,"produtoId":1}'
 
-# 4. Ver dashboard
+# 6. Ver dashboard com alertas
 curl -X GET http://localhost:4000/dashboard \
   -H "Authorization: Bearer SEU_TOKEN"
 ```
@@ -632,9 +656,18 @@ npx prisma generate
 O seed popula o banco com:
 - **5 usuários** (2 admins + 3 estoquistas)
 - **20 fornecedores**
-- **100 produtos** (5 categorias: Eletrônicos, Alimentos, Roupas, Livros, Brinquedos)
-- **573 movimentações** (296 entradas + 277 saídas)
-- **Total: 698 registros** prontos para teste
+- **100 produtos** (5 categorias: Eletrônicos, Informática, Periféricos, Cabos e Acessórios, Componentes)
+- **569 movimentações** (296 entradas + 273 saídas)
+- **Total: 694 registros** prontos para teste
+
+### 📦 Campos dos Produtos:
+- `barcode` - Código de barras único (EAN-13)
+- `name` - Nome do produto
+- `description` - Descrição detalhada
+- `price` - Preço (R$ 50 - R$ 5.000)
+- `stock` - Estoque atual (atualizado automaticamente)
+- `category` - Categoria do produto
+- `estoqueMinimo` - Estoque mínimo para alerta
 
 ---
 

@@ -226,7 +226,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["products"]
             },
-            "description": "Lista todos os produtos com estoque calculado e dados do fornecedor.\n\n**Permissões:** Admin e Estoquista"
+            "description": "Lista todos os produtos com estoque atual e dados do fornecedor.\n\n**Permissões:** Admin e Estoquista\n\n**Retorna:**\n- barcode: Código de barras\n- name: Nome do produto\n- description: Descrição\n- price: Preço\n- stock: Estoque atual\n- category: Categoria\n- estoqueMinimo: Estoque mínimo\n- fornecedor: Dados do fornecedor"
           },
           "response": []
         },
@@ -245,7 +245,26 @@
               "host": ["{{baseUrl}}"],
               "path": ["products", "1"]
             },
-            "description": "Busca um produto específico com estoque calculado.\n\n**Permissões:** Admin e Estoquista"
+            "description": "Busca um produto específico com estoque atual.\n\n**Permissões:** Admin e Estoquista"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by Barcode",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/barcode/1234567890123",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "barcode", "1234567890123"]
+            },
+            "description": "Busca um produto pelo código de barras.\n\n**Permissões:** Admin e Estoquista\n\n**Útil para:** Leitura de código de barras no frontend"
           },
           "response": []
         },
@@ -265,14 +284,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"MOUSE-PRO-001\",\n  \"nome\": \"Mouse Gamer Pro\",\n  \"estoqueMinimo\": 10,\n  \"fornecedorId\": 1\n}"
+              "raw": "{\n  \"barcode\": \"1234567890123\",\n  \"name\": \"Mouse Gamer RGB Pro\",\n  \"description\": \"Mouse gamer com iluminação RGB e 7 botões programáveis\",\n  \"price\": 159.90,\n  \"stock\": 0,\n  \"category\": \"Periféricos\",\n  \"estoqueMinimo\": 10,\n  \"fornecedorId\": 1\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/products",
               "host": ["{{baseUrl}}"],
               "path": ["products"]
             },
-            "description": "Cria um novo produto.\n\n**Permissões:** Apenas Admin\n\n**Campos obrigatórios:**\n- sku: Código único do produto\n- nome: Nome do produto\n- estoqueMinimo: Quantidade mínima em estoque\n- fornecedorId: ID do fornecedor"
+            "description": "Cria um novo produto.\n\n**Permissões:** Apenas Admin\n\n**Campos obrigatórios:**\n- barcode: Código de barras único (EAN-13)\n- name: Nome do produto\n- price: Preço do produto\n- stock: Estoque inicial (geralmente 0)\n- category: Categoria do produto\n- estoqueMinimo: Quantidade mínima em estoque\n- fornecedorId: ID do fornecedor\n\n**Campo opcional:**\n- description: Descrição detalhada"
           },
           "response": []
         },
@@ -292,14 +311,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Mouse Gamer Pro RGB\",\n  \"estoqueMinimo\": 15\n}"
+              "raw": "{\n  \"name\": \"Mouse Gamer RGB Pro Plus\",\n  \"description\": \"Mouse gamer com iluminação RGB, 7 botões e sensor de alta precisão\",\n  \"price\": 189.90,\n  \"category\": \"Periféricos\",\n  \"estoqueMinimo\": 15\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/products/1",
               "host": ["{{baseUrl}}"],
               "path": ["products", "1"]
             },
-            "description": "Atualiza os dados de um produto.\n\n**Permissões:** Apenas Admin\n\n**Nota:** SKU e fornecedorId também podem ser alterados"
+            "description": "Atualiza os dados de um produto.\n\n**Permissões:** Apenas Admin\n\n**Nota:** Barcode, stock e fornecedorId também podem ser alterados se necessário"
           },
           "response": []
         },
@@ -498,7 +517,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["stockmovements"]
             },
-            "description": "Registra uma entrada de mercadoria.\n\n**Permissões:** Admin e Estoquista\n\n**Campos obrigatórios:**\n- tipo: \"entrada\"\n- quantidade: Número positivo\n- produtoId: ID do produto"
+            "description": "Registra uma entrada de mercadoria.\n\n**Permissões:** Admin e Estoquista\n\n**Campos obrigatórios:**\n- tipo: \"entrada\"\n- quantidade: Número positivo\n- produtoId: ID do produto\n\n**Nota:** O campo `stock` do produto é atualizado automaticamente"
           },
           "response": []
         },
@@ -525,7 +544,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["stockmovements"]
             },
-            "description": "Registra uma saída de mercadoria.\n\n**Permissões:** Admin e Estoquista\n\n**Campos obrigatórios:**\n- tipo: \"saida\"\n- quantidade: Número positivo\n- produtoId: ID do produto"
+            "description": "Registra uma saída de mercadoria.\n\n**Permissões:** Admin e Estoquista\n\n**Campos obrigatórios:**\n- tipo: \"saida\"\n- quantidade: Número positivo\n- produtoId: ID do produto\n\n**Nota:** O campo `stock` do produto é atualizado automaticamente"
           },
           "response": []
         },
@@ -544,7 +563,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["stockmovements", "1"]
             },
-            "description": "Exclui uma movimentação.\n\n**Permissões:** Apenas Admin\n\n**⚠️ Atenção:** Afeta o cálculo do estoque do produto"
+            "description": "Exclui uma movimentação.\n\n**Permissões:** Apenas Admin\n\n**⚠️ Atenção:** O campo `stock` do produto precisa ser recalculado manualmente após exclusão"
           },
           "response": []
         }
