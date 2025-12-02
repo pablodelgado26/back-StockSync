@@ -8,8 +8,9 @@ import { createLimiter } from "../middleware/rateLimitMiddleware.js";
 const router = express.Router();
 
 // Rotas de produtos (leitura para todos autenticados)
-router.get("/", ProductController.index);          // GET /products - Listar todos
-router.get("/:id", ProductController.show);        // GET /products/:id - Obter por ID
+router.get("/", ProductController.index);                    // GET /products - Listar todos
+router.get("/barcode/:barcode", ProductController.showByBarcode); // GET /products/barcode/:barcode - Buscar por barcode
+router.get("/:id", ProductController.show);                  // GET /products/:id - Obter por ID
 
 // Rotas restritas a admin (com validação)
 router.post(

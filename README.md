@@ -790,6 +790,6 @@ Para dúvidas ou problemas:
 
 ---
 
-**Desenvolvido com ❤️ por Alexandra, Gabriela e Pablo**
+**Desenvolvido por Alexandra, Gabriela e Pablo**
 
 🚀 **Boa sorte com o projeto!**

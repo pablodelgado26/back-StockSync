@@ -24,7 +24,7 @@ class ProductController {
     async show(req, res) {
         try {
             const { id } = req.params;
-            const product = await ProductModel.findById(id);
+            const product = await ProductModel.findById(Number(id));
 
             if (!product) {
                 return res.status(404).json({ error: "Produto não encontrado" });
@@ -41,22 +41,43 @@ class ProductController {
         }
     }
 
+    // Obter um produto pelo código de barras
+    async showByBarcode(req, res) {
+        try {
+            const { barcode } = req.params;
+            const product = await ProductModel.findByBarcode(barcode);
+
+            if (!product) {
+                return res.status(404).json({ error: "Produto não encontrado" });
+            }
+
+            // Produto já tem o campo stock direto
+            res.json({
+                ...product,
+                estoqueAtual: product.stock
+            });
+        } catch (error) {
+            console.error("Erro ao buscar produto por barcode:", error);
+            res.status(500).json({ error: "Erro ao buscar produto" });
+        }
+    }
+
     // Criar um novo produto (somente admin)
     async store(req, res) {
         try {
-            const { sku, nome, estoqueMinimo, fornecedorId } = req.body;
+            const { barcode, name, description, price, stock, category, estoqueMinimo, fornecedorId } = req.body;
 
             // Validação básica
-            if (!sku || !nome || estoqueMinimo === undefined || !fornecedorId) {
+            if (!barcode || !name || price === undefined || category === undefined || !fornecedorId) {
                 return res.status(400).json({ 
-                    error: "Os campos SKU, nome, estoque mínimo e fornecedor são obrigatórios" 
+                    error: "Os campos barcode, name, price, category e fornecedorId são obrigatórios" 
                 });
             }
 
-            // Verificar se o SKU já existe
-            const productExists = await ProductModel.findBySku(sku);
+            // Verificar se o barcode já existe
+            const productExists = await ProductModel.findByBarcode(barcode);
             if (productExists) {
-                return res.status(400).json({ error: "Este SKU já está cadastrado!" });
+                return res.status(400).json({ error: "Este código de barras já está cadastrado!" });
             }
 
             // Verificar se o fornecedor existe
@@ -67,9 +88,13 @@ class ProductController {
 
             // Criar o produto
             const data = { 
-                sku, 
-                nome, 
-                estoqueMinimo: Number(estoqueMinimo),
+                barcode,
+                name,
+                description,
+                price: Number(price),
+                stock: stock !== undefined ? Number(stock) : 0,
+                category,
+                estoqueMinimo: estoqueMinimo !== undefined ? Number(estoqueMinimo) : 10,
                 fornecedorId: Number(fornecedorId)
             };
             const product = await ProductModel.create(data);
@@ -88,7 +113,7 @@ class ProductController {
             const { barcode, name, description, price, stock, category, estoqueMinimo, fornecedorId } = req.body;
 
             // Verificar se o produto existe
-            const productExists = await ProductModel.findById(id);
+            const productExists = await ProductModel.findById(Number(id));
             if (!productExists) {
                 return res.status(404).json({ error: "Produto não encontrado" });
             }
@@ -103,7 +128,7 @@ class ProductController {
 
             // Se o fornecedor foi alterado, verificar se existe
             if (fornecedorId) {
-                const supplierExists = await SupplierModel.findById(fornecedorId);
+                const supplierExists = await SupplierModel.findById(Number(fornecedorId));
                 if (!supplierExists) {
                     return res.status(404).json({ error: "Fornecedor não encontrado" });
                 }
@@ -120,7 +145,7 @@ class ProductController {
             if (estoqueMinimo !== undefined) data.estoqueMinimo = Number(estoqueMinimo);
             if (fornecedorId) data.fornecedorId = Number(fornecedorId);
 
-            const product = await ProductModel.update(id, data);
+            const product = await ProductModel.update(Number(id), data);
 
             return res.json({
                 message: "Produto atualizado com sucesso!",
